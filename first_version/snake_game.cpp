@@ -36,20 +36,35 @@ void GenerateRandomBorders() {
     borderHeight2 = rand() % (height / 4) + 2;  // Random height (minimum size 2)
 }
 
+// Function to check if fruit is inside any border
+bool isInsideBorder(int fruitX, int fruitY, int borderX, int borderY, int borderWidth, int borderHeight) {
+    return fruitX >= borderX && fruitX < (borderX + borderWidth) &&
+           fruitY >= borderY && fruitY < (borderY + borderHeight);
+}
 
-// Function to initialize the game
+// Function to place fruit ensuring it is not inside a border
+void PlaceFruit(int &fruitX, int &fruitY) {
+    do {
+        fruitX = rand() % width;
+        fruitY = rand() % height;
+    } while (isInsideBorder(fruitX, fruitY, borderX1, borderY1, borderWidth1, borderHeight1) ||
+             isInsideBorder(fruitX, fruitY, borderX2, borderY2, borderWidth2, borderHeight2));
+}
+
+// Update the Setup function to ensure correct placement of fruits
 void Setup() {
     gameOver = false;
     dir = STOP;
     x = width / 2;
     y = height / 2;
-    fruitX1 = rand() % width;
-    fruitY1 = rand() % height;
-    fruitX2 = rand() % width;
-    fruitY2 = rand() % height;
+
+    // Set initial positions for fruits, ensuring they don't spawn inside borders
+    PlaceFruit(fruitX1, fruitY1);
+    PlaceFruit(fruitX2, fruitY2);
+
     score = 0;
     nTail = 0;
-
+    
     GenerateRandomBorders();  // Initialize random borders
 }
 

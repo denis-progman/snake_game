@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake Game</title>
+  <style>
+    #game-board { display: grid; grid-template-columns: repeat(20, 20px); }
+    .cell { width: 20px; height: 20px; background-color: #eee; border: 1px solid #ccc; }
+    .snake { background-color: green; }
+    .fruit { background-color: red; }
+  </style>
+</head>
+<body>
+  <h1>Snake Game</h1>
+  <div id="game-board"></div>
+  <p>Score: <span id="score">0</span></p>
+
+  <script>
+    const board = document.getElementById('game-board');
+    const scoreDisplay = document.getElementById('score');
+    const width = 20;
+    const height = 10;
+
+    // Create game board cells
+    for (let i = 0; i < width * height; i++) {
+      const cell = document.createElement('div');
+      cell.classList.add('cell');
+      board.appendChild(cell);
+    }
+
+    const cells = Array.from(document.querySelectorAll('.cell'));
+
+    // Update game state on the frontend
+    async function updateGame() {
+      try {
+        const response = await fetch('http://localhost:8080/game/state');
+        const state = await response.json();
+
+        if (state.gameOver) {
+          alert("Game Over!");
+          await fetch('http://localhost:8080/game/reset', { method: 'POST' });
+          return;
+        }
+
+        scoreDisplay.textContent = state.score;
+
+        // Clear the board
+        cells.forEach(cell => cell.classList.remove('snake', 'fruit'));
+
+        // Draw the snake
+        state.snake.forEach(segment => {
+          const index = segment.y * width + segment.x;
+          cells[index].classList.add('snake');
+        });
+
+        // Draw the fruit
+        const fruitIndex = state.fruit.y * width + state.fruit.x;
+        cells[fruitIndex].classList.add('fruit');
+
+      } catch (error) {
+        console.error('Error updating game:', error);
+      }
+    }
+
+    // Change direction based on key input
+    document.addEventListener('keydown', async (event) => {
+      let direction = null;
+      if (event.key === 'a') direction = 1;  // LEFT
+      else if (event.key === 'd') direction = 2;  // RIGHT
+      else if (event.key === 'w') direction = 3;  // UP
+      else if (event.key === 's') direction = 4;  // DOWN
+
+      if (direction !== null) {
+        await fetch(`http://localhost:8080/game/direction/${direction}`, { method: 'POST' });
+      }
+    });
+
+    // Game loop
+    setInterval(updateGame, 200);
+  </script>
+</body>
+</html>
